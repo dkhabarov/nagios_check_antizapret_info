@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************
 '''
 
+
 import urllib2, argparse
 from simplejson import loads as json_load
 
@@ -39,21 +40,22 @@ def main():
 	output = ''
 	exit_code = 3
 	url = "http://api.antizapret.info/get.php?item=%s&type=json" % cliargs.host
+	result = None	
 	try:
 		result = urllib2.urlopen(url,timeout = cliargs.timeout)
 
-	except urllib2.URLError as err_msg:
+	except (urllib2.URLError,urllib2.HTTPError) as err_msg:
 		output = ('Antizapret.info error: %s' % err_msg)
 		exit_code = 3
-	data = json_load(result.read())
-	
-	if data.has_key('register'):
-		if data['register'] is None:
-			print ('OK %s is not found in zapret-info.gov.ru. Updated: %s' %(cliargs.host,data['updateTime']))
-			exit(0)
-		for i in data['register']:
-			output += ('\n%s is found in register. For get more information see: %s' % (i['url'],i['proof']))
-			exit_code = 2
+	if result is not None:
+		data = json_load(result.read())
+		if data.has_key('register'):
+			if data['register'] is None:
+				print ('OK %s is not found in zapret-info.gov.ru. Updated: %s' %(cliargs.host,data['updateTime']))
+				exit(0)
+			for i in data['register']:
+				output += ('\n%s is found in register. For get more information see: %s' % (i['url'],i['proof']))
+				exit_code = 2
 	print(output)
 	exit(exit_code)
 	
